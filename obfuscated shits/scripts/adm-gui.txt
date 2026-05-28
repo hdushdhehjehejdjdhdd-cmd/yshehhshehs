@@ -1,0 +1,397 @@
+
+
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
+
+pcall(function()
+    local old = CoreGui:FindFirstChild("FakeLoadingScreen")
+    if old then old:Destroy() end
+end)
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FakeLoadingScreen"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.DisplayOrder = 99999999
+ScreenGui.Parent = CoreGui
+
+local Background = Instance.new("Frame")
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.BackgroundColor3 = Color3.fromRGB(10, 5, 20)
+Background.BorderSizePixel = 0
+Background.BackgroundTransparency = 1
+Background.Parent = ScreenGui
+
+local BGGradient = Instance.new("UIGradient")
+BGGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 20, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 8, 25))
+}
+BGGradient.Rotation = 35
+BGGradient.Parent = Background
+
+-- Build UI OFFSCREEN
+local FINAL_SIZE = UDim2.new(0, 460, 0, 300)
+local FINAL_POS  = UDim2.new(0.5, 0, 0.5, 0)
+
+local Main = Instance.new("Frame")
+Main.AnchorPoint = Vector2.new(0.5, 0.5)
+Main.Position = FINAL_POS
+Main.Size = FINAL_SIZE
+Main.BackgroundColor3 = Color3.fromRGB(35, 25, 55)      -- Dark purple base
+Main.BorderSizePixel = 0
+Main.ClipsDescendants = true
+Main.Visible = false
+Main.Parent = nil
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 20)
+MainCorner.Parent = Main
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(180, 120, 255)       -- Vibrant purple stroke
+MainStroke.Thickness = 1
+MainStroke.Transparency = 0.7
+MainStroke.Parent = Main
+
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 70)
+Header.BackgroundColor3 = Color3.fromRGB(45, 30, 70)    -- Slightly darker header
+Header.BorderSizePixel = 0
+Header.Parent = Main
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 20)
+HeaderCorner.Parent = Header
+
+local HeaderFix = Instance.new("Frame")
+HeaderFix.Size = UDim2.new(1, 0, 0, 20)
+HeaderFix.Position = UDim2.new(0, 0, 1, -20)
+HeaderFix.BackgroundColor3 = Header.BackgroundColor3
+HeaderFix.BorderSizePixel = 0
+HeaderFix.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -40, 0, 28)
+Title.Position = UDim2.new(0, 20, 0, 8)
+Title.BackgroundTransparency = 1
+Title.Text = "ADOPT ME"
+Title.Font = Enum.Font.GothamBlack
+Title.TextSize = 24
+Title.TextColor3 = Color3.fromRGB(245, 240, 255)
+Title.TextXAlignment = Enum.TextXAlignment.Center
+Title.Parent = Header
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, -40, 0, 20)
+Subtitle.Position = UDim2.new(0, 20, 0, 36)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = "Secure Script Loader"
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.TextSize = 13
+Subtitle.TextColor3 = Color3.fromRGB(180, 160, 220)
+Subtitle.TextXAlignment = Enum.TextXAlignment.Center
+Subtitle.Parent = Header
+
+local SpinnerContainer = Instance.new("Frame")
+SpinnerContainer.Size = UDim2.new(0, 100, 0, 100)
+SpinnerContainer.Position = UDim2.new(0.5, -50, 0, 85)
+SpinnerContainer.BackgroundTransparency = 1
+SpinnerContainer.Parent = Main
+
+local Ring = Instance.new("Frame")
+Ring.Size = UDim2.new(1, 0, 1, 0)
+Ring.BackgroundTransparency = 1
+Ring.Parent = SpinnerContainer
+
+local RingCorner = Instance.new("UICorner")
+RingCorner.CornerRadius = UDim.new(1, 0)
+RingCorner.Parent = Ring
+
+local RingStroke = Instance.new("UIStroke")
+RingStroke.Thickness = 4
+RingStroke.Transparency = 0
+RingStroke.Parent = Ring
+
+local RingGradient = Instance.new("UIGradient")
+RingGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0,    Color3.fromRGB(180, 120, 255)), -- #B478FF
+    ColorSequenceKeypoint.new(0.5,  Color3.fromRGB(200, 140, 255)), -- #C88CFF
+    ColorSequenceKeypoint.new(1,    Color3.fromRGB(140, 90, 220))   -- #8C5ADC
+}
+RingGradient.Rotation = 0
+RingGradient.Parent = RingStroke
+
+local Avatar = Instance.new("ImageLabel")
+Avatar.Size = UDim2.new(0.7, 0, 0.7, 0)
+Avatar.AnchorPoint = Vector2.new(0.5, 0.5)
+Avatar.Position = UDim2.new(0.5, 0, 0.5, 0)
+Avatar.BackgroundTransparency = 1
+Avatar.ScaleType = Enum.ScaleType.Crop
+Avatar.Parent = SpinnerContainer
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+AvatarCorner.Parent = Avatar
+
+do
+    local ok, content = pcall(function()
+        return Players:GetUserThumbnailAsync(
+            LocalPlayer.UserId,
+            Enum.ThumbnailType.HeadShot,
+            Enum.ThumbnailSize.Size420x420
+        )
+    end)
+    Avatar.Image = (ok and typeof(content) == "string") and content or "rbxassetid://0"
+end
+
+local LoadingText = Instance.new("TextLabel")
+LoadingText.Size = UDim2.new(1, -40, 0, 22)
+LoadingText.Position = UDim2.new(0, 20, 0, 185)
+LoadingText.BackgroundTransparency = 1
+LoadingText.Font = Enum.Font.GothamMedium
+LoadingText.TextSize = 15
+LoadingText.TextColor3 = Color3.fromRGB(220, 210, 245)
+LoadingText.TextXAlignment = Enum.TextXAlignment.Center
+LoadingText.Text = "Preparing environment..."
+LoadingText.Parent = Main
+
+local PercentText = Instance.new("TextLabel")
+PercentText.Size = UDim2.new(1, -40, 0, 24)
+PercentText.Position = UDim2.new(0, 20, 0, 207)
+PercentText.BackgroundTransparency = 1
+PercentText.Font = Enum.Font.GothamBold
+PercentText.TextSize = 18
+PercentText.TextColor3 = Color3.fromRGB(180, 140, 255)  -- Purple accent text
+PercentText.TextXAlignment = Enum.TextXAlignment.Center
+PercentText.Text = "0,0%"
+PercentText.Parent = Main
+
+local function formatPercent(v)
+    local s = string.format("%.1f", v)
+    s = s:gsub("%.", ",")
+    return s .. "%"
+end
+
+local ProgressBG = Instance.new("Frame")
+ProgressBG.Size = UDim2.new(1, -60, 0, 6)
+ProgressBG.Position = UDim2.new(0, 30, 1, -60)
+ProgressBG.BackgroundColor3 = Color3.fromRGB(50, 40, 80)
+ProgressBG.BorderSizePixel = 0
+ProgressBG.Parent = Main
+
+local ProgressBGCorner = Instance.new("UICorner")
+ProgressBGCorner.CornerRadius = UDim.new(1, 0)
+ProgressBGCorner.Parent = ProgressBG
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(180, 120, 255)  -- Main purple
+ProgressBar.BorderSizePixel = 0
+ProgressBar.Parent = ProgressBG
+
+local ProgressCorner = Instance.new("UICorner")
+ProgressCorner.CornerRadius = UDim.new(1, 0)
+ProgressCorner.Parent = ProgressBar
+
+local ProgressGradient = Instance.new("UIGradient")
+ProgressGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0,   Color3.fromRGB(160, 100, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(190, 140, 255)),
+    ColorSequenceKeypoint.new(1,   Color3.fromRGB(210, 170, 255))
+}
+ProgressGradient.Parent = ProgressBar
+
+local DiscordCard = Instance.new("Frame")
+DiscordCard.Size = UDim2.new(1, -60, 0, 46)
+DiscordCard.Position = UDim2.new(0, 30, 1, -48)
+DiscordCard.BackgroundColor3 = Color3.fromRGB(45, 35, 75)
+DiscordCard.BorderSizePixel = 0
+DiscordCard.Parent = Main
+
+local DiscordCorner = Instance.new("UICorner")
+DiscordCorner.CornerRadius = UDim.new(0, 14)
+DiscordCorner.Parent = DiscordCard
+
+local DiscordIcon = Instance.new("TextLabel")
+DiscordIcon.Size = UDim2.new(0, 24, 0, 24)
+DiscordIcon.Position = UDim2.new(0, 12, 0.5, -12)
+DiscordIcon.BackgroundTransparency = 1
+DiscordIcon.Text = "🌐"
+DiscordIcon.Font = Enum.Font.GothamBold
+DiscordIcon.TextSize = 16
+DiscordIcon.TextColor3 = Color3.fromRGB(180, 160, 220)
+DiscordIcon.Parent = DiscordCard
+
+local DiscordTop = Instance.new("TextLabel")
+DiscordTop.Size = UDim2.new(0, 150, 0, 16)
+DiscordTop.Position = UDim2.new(0, 46, 0, 6)
+DiscordTop.BackgroundTransparency = 1
+DiscordTop.Text = "Join our community"
+DiscordTop.Font = Enum.Font.Gotham
+DiscordTop.TextSize = 11
+DiscordTop.TextColor3 = Color3.fromRGB(190, 180, 230)
+DiscordTop.TextXAlignment = Enum.TextXAlignment.Left
+DiscordTop.Parent = DiscordCard
+
+local DiscordLink = Instance.new("TextLabel")
+DiscordLink.Size = UDim2.new(0, 170, 0, 18)
+DiscordLink.Position = UDim2.new(0, 46, 0, 24)
+DiscordLink.BackgroundTransparency = 1
+DiscordLink.Text = "discord.gg/rayzhub"
+DiscordLink.Font = Enum.Font.GothamBold
+DiscordLink.TextSize = 12
+DiscordLink.TextColor3 = Color3.fromRGB(180, 120, 255)  -- Purple link
+DiscordLink.TextXAlignment = Enum.TextXAlignment.Left
+DiscordLink.Parent = DiscordCard
+
+local CopyButton = Instance.new("TextButton")
+CopyButton.Size = UDim2.new(0, 70, 0, 28)
+CopyButton.Position = UDim2.new(1, -80, 0.5, -14)
+CopyButton.BackgroundColor3 = Color3.fromRGB(160, 100, 255)  -- Purple button
+CopyButton.Text = "COPY"
+CopyButton.Font = Enum.Font.GothamBold
+CopyButton.TextSize = 12
+CopyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CopyButton.BorderSizePixel = 0
+CopyButton.Parent = DiscordCard
+
+local CopyCorner = Instance.new("UICorner")
+CopyCorner.CornerRadius = UDim.new(0, 8)
+CopyCorner.Parent = CopyButton
+
+CopyButton.MouseEnter:Connect(function()
+    TweenService:Create(CopyButton, TweenInfo.new(0.18), { BackgroundColor3 = Color3.fromRGB(180, 130, 255) }):Play()
+end)
+
+CopyButton.MouseLeave:Connect(function()
+    TweenService:Create(CopyButton, TweenInfo.new(0.18), { BackgroundColor3 = Color3.fromRGB(160, 100, 255) }):Play()
+end)
+
+CopyButton.MouseButton1Click:Connect(function()
+    if setclipboard then setclipboard("discord.gg/rayzhub") end
+    CopyButton.Text = "COPIED"
+    task.delay(1.4, function()
+        if CopyButton and CopyButton.Parent then
+            CopyButton.Text = "COPY"
+        end
+    end)
+end)
+
+-- Entrance animation (same logic)
+local startedSpin = false
+task.defer(function()
+    RunService.RenderStepped:Wait()
+
+    Main.Parent = Background
+    Main.Visible = true
+    Main.Size = UDim2.new(0, 0, 0, 0)
+
+    TweenService:Create(
+        Background,
+        TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        { BackgroundTransparency = 0 }
+    ):Play()
+
+    TweenService:Create(
+        Main,
+        TweenInfo.new(0.42, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+        { Size = FINAL_SIZE, Position = FINAL_POS }
+    ):Play()
+
+    startedSpin = true
+end)
+
+task.spawn(function()
+    while task.wait(0.03) do
+        if startedSpin then
+            Ring.Rotation = (Ring.Rotation + 2.0) % 360
+            RingGradient.Rotation = (RingGradient.Rotation + 2.0) % 360
+        end
+    end
+end)
+
+-- Loading logic (unchanged)
+local progress = 0
+local stuckValue = 99.8
+local didFakeFail = false
+local didRetry = false
+local didSuccessText = false
+
+local function updateText(p)
+    if p < 10 then
+        LoadingText.Text = "Preparing environment..."
+    elseif p < 25 then
+        LoadingText.Text = "Loading UI components..."
+    elseif p < 40 then
+        LoadingText.Text = "Loading core logic..."
+    elseif p < 55 then
+        LoadingText.Text = "Initializing services..."
+    elseif p < 70 then
+        LoadingText.Text = "Validating game session..."
+    elseif p < 80 then
+        if not didFakeFail then
+            LoadingText.Text = "Attach failed, rolling back changes..."
+            didFakeFail = true
+        else
+            LoadingText.Text = "Re-applying hook configuration..."
+        end
+    elseif p < 90 then
+        if not didRetry then
+            LoadingText.Text = "Retrying injection (1/2)..."
+            didRetry = true
+        else
+            LoadingText.Text = "Retrying injection (2/2)..."
+        end
+    elseif p < stuckValue then
+        if not didSuccessText then
+            LoadingText.Text = "Successfully attached, finalizing loader..."
+            didSuccessText = true
+        else
+            LoadingText.Text = "Finalizing loader..."
+        end
+    end
+end
+
+local TOTAL_DURATION = math.random(420, 600)
+local startTime = os.clock()
+
+task.spawn(function()
+    while true do
+        local elapsed = os.clock() - startTime
+        local t = math.clamp(elapsed / TOTAL_DURATION, 0, 1)
+
+        local eased = 1 - (1 - t) ^ 2
+        local targetProgress = stuckValue * eased
+        if targetProgress <= progress then
+            targetProgress = math.min(progress + 0.02, stuckValue)
+        end
+
+        progress = math.clamp(targetProgress, 0, stuckValue)
+        updateText(progress)
+
+        PercentText.Text = formatPercent(progress)
+        TweenService:Create(
+            ProgressBar,
+            TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+            { Size = UDim2.new(progress / 100, 0, 1, 0) }
+        ):Play()
+
+        if t >= 1 then break end
+        task.wait(0.15 + math.random() * 0.2)
+    end
+
+    progress = stuckValue
+    updateText(progress)
+    PercentText.Text = formatPercent(progress)
+    TweenService:Create(
+        ProgressBar,
+        TweenInfo.new(0.4, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+        { Size = UDim2.new(progress / 100, 0, 1, 0) }
+    ):Play()
+end)

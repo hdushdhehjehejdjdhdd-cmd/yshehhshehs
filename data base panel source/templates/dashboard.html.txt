@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}RAYZ HUB — DASHBOARD{% endblock %}
+
+{% block content %}
+    {% if error %}
+        <div class="error-message">
+            [ ERROR ] {{ error }}
+        </div>
+    {% endif %}
+
+    <h2 class="section-header">[ USER CONFIGURATIONS — {{ users|length }} records ]</h2>
+
+    {% if users %}
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>USER ID</th>
+                        <th>USERNAMES</th>
+                        <th>WEBHOOK</th>
+                        <th>HITS</th>
+                        <th>BLACKLISTED</th>
+                        <th>PASTE ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                        <tr>
+                            <td><code>{{ u.user_id }}</code></td>
+                            <td><code>{{ u.usernames | join(", ") or "—" }}</code></td>
+                            <td>
+                                {% if u.webhook %}
+                                    <code class="webhook-code">{{ u.webhook[:40] }}{% if u.webhook|length > 40 %}...{% endif %}</code>
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td class="hits">{{ u.hits or 0 }}</td>
+                            <td class="{% if u.blacklisted %}blacklisted{% else %}active{% endif %}">
+                                {{ "YES" if u.blacklisted else "NO" }}
+                            </td>
+                            <td><code>{{ u.paste_id or "—" }}</code></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            [ INFO ] No user configurations found
+        </div>
+    {% endif %}
+{% endblock %}

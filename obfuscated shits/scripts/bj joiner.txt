@@ -1,0 +1,45 @@
+-- RAYZ HUB - Joiner Script
+-- Used to join the specific server instance (JobId) of the victim
+
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+
+-- Ensure the required variables exist from the loadstring environment
+local targetJobId = getgenv().JOBID
+local targetSea = tonumber(getgenv().SEA)
+local targetUser = getgenv().USER or "Unknown"
+
+-- Map Sea numbers to PlaceIds
+local SeaPlaceIds = {
+    [1] = 2753915549,
+    [2] = 4442272183,
+    [3] = 7449423635
+}
+
+local targetPlaceId = SeaPlaceIds[targetSea] or game.PlaceId
+
+-- Verification/Notification
+print("RAYZ HUB: Attempting to join " .. targetUser .. " in Sea " .. tostring(targetSea))
+
+if not targetJobId or targetJobId == "" then
+    warn("RAYZ HUB ERROR: No JobId provided. Cannot teleport.")
+    return
+end
+
+-- Function to handle teleport
+local function teleport()
+    pcall(function()
+        -- Use TeleportToPlaceInstance to join the exact server
+        TeleportService:TeleportToPlaceInstance(targetPlaceId, targetJobId, lp)
+    end)
+end
+
+-- Handle potential teleport failure (server full, etc)
+TeleportService.TeleportInitFailed:Connect(function(player, result, errorMessage)
+    warn("Teleport Failed: " .. tostring(errorMessage))
+end)
+
+-- Execute Teleport
+teleport()
+

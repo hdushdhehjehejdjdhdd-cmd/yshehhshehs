@@ -1,0 +1,368 @@
+-- Essential WindUI Library Loading
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+
+-- Game Services and Player
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+
+-- Item Spawner Data
+local items = {
+    {original = "Harvester", custom = "Harvester"},
+    {original = "Gingerscope", custom = "Gingerscope"},
+    {original = "Bauble", custom = "Bauble"},
+    {original = "Icepiercer", custom = " Icepiercer"},
+    {original = "TreeGun2023", custom = "Evergun"},
+    {original = "TreeKnife2023", custom = "Evergreen"},
+    {original = "TreeGun2023Chroma", custom = "Chroma Evergun"},
+    {original = "TreeKnife2023Chroma", custom = "Chroma Evergreen"},
+    {original = "Bloom", custom = "Bloom"},
+    {original = "Flora", custom = "Flora"},
+    {original = "TravelerAxe", custom = "Traveler's Axe"},
+    {original = "TravelerGun", custom = "Traveler's Gun"},
+    {original = "TravelerAxeChroma", custom = "Chroma Traveler's Axe"},
+    {original = "TravelerGunChroma", custom = "Chroma Traveler's Gun"},
+    {original = "Celestial", custom = "Celestial"},
+    {original = "Constellation", custom = "Constellation"},
+    {original = "ConstellationChroma", custom = "Chroma Constellation"},
+    {original = "BaubleChroma", custom = "Chroma Bauble"},
+    {original = "Candy", custom = "Candy"},
+    {original = "Sugar", custom = "Sugar"},
+    {original = "Darksword", custom = "Darksword"},
+    {original = "Darkshot", custom = "Darkshot"},
+    {original = "VampireAxe", custom = "Vampire's Axe"},
+    {original = "VampireGun", custom = "Vampire's Gun"},
+    {original = "SwirlyAxe", custom = "Swirly Axe"},
+    {original = "SwirlyGun", custom = "Swirly Gun"},
+    {original = "Flowerwood", custom = "Flowerwood"},
+    {original = "FlowerwoodGun", custom = "Flowerwood Gun"},
+    {original = "VampireGunChroma", custom = "Chroma Vampire's Gun"},
+    {original = "WatergunChroma", custom = "Chroma Watergun"},
+    {original = "Turkey2023", custom = "Turkey"},
+    {original = "Sakura_K", custom = "Sakura"},
+    {original = "Blossom_G", custom = "Blossom"},
+    {original = "ZombieBat", custom = "Bat"},
+    {original = "Makeshift", custom = "Makeshift"},
+    {original = "Sorry", custom = "Corrupt"}
+}
+
+-- Item Spawner Helper Functions
+local function getOriginalName(customName)
+    for _, item in ipairs(items) do
+        if item.custom == customName then
+            return item.original
+        end
+    end
+    return customName
+end
+
+local function spawnItem(name)
+    local DataBase, PlayerData = require(ReplicatedStorage.Database.Sync.Item), require(ReplicatedStorage.Modules.ProfileData)
+    local PlayerWeapons = PlayerData.Weapons
+
+    if not PlayerWeapons.Owned[name] then
+        PlayerWeapons.Owned[name] = 1
+    else
+        PlayerWeapons.Owned[name] = PlayerWeapons.Owned[name] + 1
+    end
+
+    game:GetService("RunService"):BindToRenderStep("InventoryUpdate", 0, function()
+        PlayerData.Weapons = PlayerWeapons
+    end)
+
+    game.Players.LocalPlayer.Character:BreakJoints()
+end
+
+-- Autoload System
+local SaveFileName = "RayzHub_MM2_Autoload.json"
+local autoLoadEnabled = false
+local savedItems = {}
+
+local function saveItems()
+    if not autoLoadEnabled then return end
+    local data = HttpService:JSONEncode(savedItems)
+    writefile(SaveFileName, data)
+end
+
+local function loadSavedItems()
+    if not isfile(SaveFileName) then return end
+    local success, data = pcall(function()
+        return HttpService:JSONDecode(readfile(SaveFileName))
+    end)
+    if not success or type(data) ~= "table" then return end
+
+    for _, customName in ipairs(data) do
+        local originalName = getOriginalName(customName)
+        if originalName then
+            spawnItem(originalName)
+            task.wait(0.35)
+        end
+    end
+end
+
+-- Check for saved items on script start
+if isfile(SaveFileName) then
+    local success, data = pcall(function()
+        return HttpService:JSONDecode(readfile(SaveFileName))
+    end)
+    if success and type(data) == "table" and #data > 0 then
+        autoLoadEnabled = true
+        task.spawn(loadSavedItems)
+    end
+end
+
+-- Autoload off command
+LocalPlayer.Chatted:Connect(function(msg)
+    if msg:lower() == ",autoload off" then
+        autoLoadEnabled = false
+        savedItems = {}
+        if isfile(SaveFileName) then
+            delfile(SaveFileName)
+        end
+        WindUI:Notify({
+            Title = "Auto Load",
+            Content = "Disabled and saved items cleared.",
+            Duration = 4
+        })
+    end
+end)
+
+-- Confirmation Popup
+local Confirmed = false
+WindUI:Popup({
+    Title = "RAYZ HUB",
+    Icon = "cuboid",
+    IconThemed = true,
+    Content = "Sub to RAYZ-HUB in youtube and join our discord server",
+    Buttons = {
+        {
+            Title = "Cancel",
+            Callback = function() end,
+            Variant = "Secondary"
+        },
+        {
+            Title = "Continue",
+            Icon = "arrow-right",
+            Callback = function()
+                Confirmed = true
+            end,
+            Variant = "Primary"
+        }
+    }
+})
+
+repeat task.wait() until Confirmed
+
+-- Main Window
+local Window = WindUI:CreateWindow({
+    Title = "RAYZ HUB",
+    Icon = "rbxassetid://121054081718087",
+    Author = "discord.gg/rayzhub",
+    Folder = "ChunkHubmm2",
+    Size = UDim2.fromOffset(420, 350),
+    Transparent = false,
+    Theme = "Dark",
+    User = {
+        Enabled = true,
+        Callback = function() end,
+        Anonymous = false
+    },
+    SideBarWidth = 150,
+    ScrollBarEnabled = true
+})
+
+Window:EditOpenButton({
+    Title = "RAYZ HUB",
+    Icon = "rbxassetid://121054081718087",
+    CornerRadius = UDim.new(0, 16),
+    StrokeThickness = 2,
+    Color = ColorSequence.new(Color3.fromHex("5787d2"), Color3.fromHex("ffffff")),
+    OnlyMobile = false,
+    Enabled = true,
+    Draggable = true
+})
+
+Window:SetToggleKey(Enum.KeyCode.K)
+
+-- Tabs
+local SpawnerTab = Window:Tab({
+    Title = "Spawner",
+    Icon = "sparkles",
+    Desc = "Spawn items into your inventory"
+})
+
+local ItemsTab = Window:Tab({
+    Title = "Item List",
+    Icon = "list",
+    Desc = "Select items from the list"
+})
+
+local SettingsTab = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+    Desc = "Autoload & more"
+})
+
+local DiscordTab = Window:Tab({
+    Title = "Discord",
+    Icon = "users",
+    Desc = "Copy our Discord Invite"
+})
+
+-- Spawner Tab
+local SpawnSection = SpawnerTab:Section({
+    Title = "Spawn Item",
+    HorizontalAlignment = Enum.HorizontalAlignment.Left
+})
+
+local selectedItem = ""
+local inputBox = SpawnSection:Input({
+    Title = "Item Name",
+    Description = "Enter the item name to spawn",
+    PlaceholderText = "Search items...",
+    Callback = function(value)
+        selectedItem = value
+    end
+})
+
+SpawnSection:Button({
+    Title = "Spawn Item",
+    Description = "Click to spawn the selected item",
+    Callback = function()
+        if selectedItem == "" then
+            Window:Notify({
+                Title = "Error",
+                Description = "Please enter an item name",
+                Duration = 3
+            })
+            return
+        end
+        
+        local originalName = getOriginalName(selectedItem)
+        spawnItem(originalName)
+        
+        if autoLoadEnabled then
+            if not table.find(savedItems, selectedItem) then
+                table.insert(savedItems, selectedItem)
+                saveItems()
+            end
+        end
+        
+        Window:Notify({
+            Title = "Success",
+            Description = "Spawned: " .. selectedItem,
+            Duration = 3
+        })
+        selectedItem = ""
+        inputBox:Set("")
+    end
+})
+
+-- Item List Tab
+local ItemsSection = ItemsTab:Section({
+    Title = "Available Items",
+    HorizontalAlignment = Enum.HorizontalAlignment.Left
+})
+
+for _, item in ipairs(items) do
+    ItemsSection:Button({
+        Title = item.custom,
+        Description = "Click to **instantly spawn** this item",
+        Callback = function()
+            local originalName = getOriginalName(item.custom)
+            spawnItem(originalName)
+            
+            if autoLoadEnabled then
+                if not table.find(savedItems, item.custom) then
+                    table.insert(savedItems, item.custom)
+                    saveItems()
+                end
+            end
+            
+            Window:Notify({
+                Title = "Success",
+                Content = "**Spawned:** " .. item.custom,
+                Icon = "shield-tick",
+                Duration = 3
+            })
+        end
+    })
+end
+
+-- Settings Tab (Autoload)
+local SettingsSection = SettingsTab:Section({
+    Title = "Autoload Settings",
+    HorizontalAlignment = Enum.HorizontalAlignment.Left
+})
+
+SettingsSection:Toggle({
+    Title = "Auto Load Items on Join",
+    Description = "Automatically spawn saved items when you join (requires auto-execute)",
+    Default = autoLoadEnabled,
+    Callback = function(value)
+        autoLoadEnabled = value
+        if value then
+            saveItems()
+            Window:Notify({
+                Title = "Auto Load",
+                Content = "Enabled - items will auto-spawn on rejoin",
+                Duration = 4
+            })
+        else
+            savedItems = {}
+            if isfile(SaveFileName) then
+                delfile(SaveFileName)
+            end
+            Window:Notify({
+                Title = "Auto Load",
+                Content = "Disabled - saved items cleared",
+                Duration = 4
+            })
+        end
+    end
+})
+
+SettingsSection:Button({
+    Title = "Clear Saved Items",
+    Description = "Remove all saved autoload items",
+    Callback = function()
+        savedItems = {}
+        if isfile(SaveFileName) then
+            delfile(SaveFileName)
+        end
+        Window:Notify({
+            Title = "Cleared",
+            Content = "All saved autoload items have been removed",
+            Duration = 3
+        })
+    end
+})
+
+-- Discord Tab
+DiscordTab:Paragraph({
+    Title = "Join our Discord!",
+    Desc = "Join our discord for more scripts",
+    Image = "users",
+    Color = "Blue"
+})
+
+DiscordTab:Button({
+    Title = "Copy Invite",
+    Icon = "users",
+    Callback = function()
+        task.spawn(function()
+            setclipboard("https://discord.gg/rayzhub")
+            WindUI:Notify({
+                Title = "Discord Invite Copied!",
+                Content = "The invite link has been copied to your clipboard.",
+                Icon = "users",
+                Duration = 4,
+                Color = "Green"
+            })
+        end)
+    end
+})
+

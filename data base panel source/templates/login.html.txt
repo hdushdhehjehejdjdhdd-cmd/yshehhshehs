@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}RAYZ HUB — AUTHENTICATION{% endblock %}
+
+{% block content %}
+    <div class="login-screen">
+        <h1 class="title-glow">RAYZ HUB</h1>
+        <p class="subtitle">SECURE ADMIN ACCESS</p>
+
+        <div class="auth-box">
+            <p>Discord OAuth2 authentication required.<br>
+               Only authorized users can enter.</p>
+
+            <a href="{{ login_url }}" class="auth-button">
+                AUTHENTICATE VIA DISCORD
+            </a>
+        </div>
+
+        <div class="glow-overlay"></div>
+    </div>
+{% endblock %}

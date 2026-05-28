@@ -1,0 +1,26 @@
+
+
+
+
+local s = {
+[2753915549] = "https://rayzhubb.vercel.app/scripts/bloxfruits.lua",
+[4442272183] = "https://rayzhubb.vercel.app/scripts/bloxfruits.lua",
+[7449423635] = "https://rayzhubb.vercel.app/scripts/bloxfruits.lua",
+[8737899170] = "https://rayzhubb.vercel.app/scripts/ps99.lua",
+[16498369169] = "https://rayzhubb.vercel.app/scripts/ps99.lua",
+[17503543197] = "https://rayzhubb.vercel.app/scripts/ps99.lua",
+[140403681187145] = "https://rayzhubb.vercel.app/scripts/ps99.lua",
+[920587237] = "https://rayzhubb.vercel.app/scripts/adm.lua",
+[109983668079237] = "https://rayzhubb.vercel.app/scripts/sab.lua",
+[96342491571673] = "https://rayzhubb.vercel.app/scripts/sab.lua",
+[131623223084840] = "https://rayzhubb.vercel.app/scripts/etfb.lua",
+[142823291] = "https://rayzhubb.vercel.app/scripts/mm2.lua",
+[75992362647444] = "https://rayzhubb.vercel.app/scripts/tapsim.lua"
+}
+
+local url = s[game.PlaceId]
+if url then
+pcall(loadstring(game:HttpGet(url,true)))
+else
+warn("No script for " .. game.PlaceId)
+end

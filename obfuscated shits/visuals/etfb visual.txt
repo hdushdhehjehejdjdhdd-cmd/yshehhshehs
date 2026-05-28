@@ -1,0 +1,364 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+
+local function sendCoreNotification(title, text, duration)
+    StarterGui:SetCore("SendNotification", {
+        Title = title or "Notification",
+        Text = text or "Message here",
+        Duration = duration or 5,
+        Icon = "rbxassetid://101542615851651", 
+    })
+end
+
+task.wait(1)
+sendCoreNotification("discord link copied", "join our discord server for more scripts", 6)
+setclipboard("https://discord.gg/pgsQatrnDw")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RayzHubDupe"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player.PlayerGui
+
+-- Colors
+local BG_COLOR    = Color3.fromRGB(18, 16, 28)
+local ACCENT      = Color3.fromRGB(170, 90, 255)
+local ACCENT_DARK = Color3.fromRGB(120, 60, 190)
+local TEXT_LIGHT  = Color3.fromRGB(235, 235, 245)
+local TEXT_DARK   = Color3.fromRGB(170, 160, 190)
+local INPUT_BG    = Color3.fromRGB(28, 25, 42)
+local HOVER       = Color3.fromRGB(200, 120, 255)
+
+-- Main frame
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0.45, 0, 0.72, 0)
+main.Position = UDim2.new(0.275, 0, 0.14, 0)
+main.BackgroundColor3 = BG_COLOR
+main.BorderSizePixel = 0
+main.ClipsDescendants = true
+main.Active = true
+main.Draggable = true
+main.Parent = screenGui
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 22)
+
+local stroke = Instance.new("UIStroke", main)
+stroke.Color = Color3.fromRGB(190, 110, 255)
+stroke.Transparency = 0.55
+stroke.Thickness = 2.8
+
+local grad = Instance.new("UIGradient", main)
+grad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(38, 32, 58)),
+    ColorSequenceKeypoint.new(1, BG_COLOR)
+}
+grad.Rotation = 90
+
+-- Title bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1,0,0.09,0)
+titleBar.BackgroundTransparency = 1
+titleBar.Parent = main
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1,0,1,0)
+titleLabel.Position = UDim2.new(0,0,0,0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "RAYZ HUB DUPER"
+titleLabel.TextColor3 = ACCENT
+titleLabel.TextSize = 38
+titleLabel.Font = Enum.Font.GothamBlack
+titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+titleLabel.TextStrokeTransparency = 0.8
+titleLabel.TextStrokeColor3 = Color3.fromRGB(90, 50, 140)
+titleLabel.Parent = titleBar
+
+-- Dropdown
+local selectedTool = nil
+
+local dropFrame = Instance.new("Frame")
+dropFrame.Size = UDim2.new(0.92,0,0.10,0)
+dropFrame.Position = UDim2.new(0.04,0,0.13,0)
+dropFrame.BackgroundColor3 = INPUT_BG
+dropFrame.Parent = main
+Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,12)
+
+local dropStroke = Instance.new("UIStroke", dropFrame)
+dropStroke.Color = ACCENT
+dropStroke.Transparency = 0.6
+dropStroke.Thickness = 1.8
+
+local dropBtn = Instance.new("TextButton")
+dropBtn.Size = UDim2.new(1,0,1,0)
+dropBtn.BackgroundTransparency = 1
+dropBtn.Text = "Select item"
+dropBtn.TextColor3 = TEXT_DARK
+dropBtn.TextSize = 22
+dropBtn.Font = Enum.Font.GothamSemibold
+dropBtn.TextXAlignment = Enum.TextXAlignment.Left
+dropBtn.TextWrapped = true
+dropBtn.Parent = dropFrame
+
+local arrow = Instance.new("TextLabel")
+arrow.Size = UDim2.new(0,45,1,0)
+arrow.Position = UDim2.new(1,-50,0,0)
+arrow.BackgroundTransparency = 1
+arrow.Text = "▼"
+arrow.TextColor3 = ACCENT
+arrow.TextSize = 26
+arrow.Font = Enum.Font.GothamBold
+arrow.Parent = dropFrame
+
+-- List
+local list = Instance.new("ScrollingFrame")
+list.Size = UDim2.new(0.92,0,0,0)
+list.Position = UDim2.new(0.04,0,0.24,0)
+list.BackgroundColor3 = Color3.fromRGB(25,23,40)
+list.BorderSizePixel = 0
+list.ScrollBarThickness = 5
+list.ScrollBarImageColor3 = ACCENT
+list.CanvasSize = UDim2.new()
+list.Visible = false
+list.Parent = main
+
+local listUIList = Instance.new("UIListLayout", list)
+listUIList.Padding = UDim.new(0,9)
+listUIList.SortOrder = Enum.SortOrder.LayoutOrder
+
+Instance.new("UIPadding", list).PaddingTop = UDim.new(0,10)
+
+-- Quantity
+local qtyLabel = Instance.new("TextLabel")
+qtyLabel.Size = UDim2.new(0.92,0,0.05,0)
+qtyLabel.Position = UDim2.new(0.04,0,0.42,0)
+qtyLabel.BackgroundTransparency = 1
+qtyLabel.Text = "Amount"
+qtyLabel.TextColor3 = TEXT_LIGHT
+qtyLabel.TextSize = 20
+qtyLabel.Font = Enum.Font.GothamSemibold
+qtyLabel.TextXAlignment = Enum.TextXAlignment.Left
+qtyLabel.Parent = main
+
+local qtyFrame = Instance.new("Frame")
+qtyFrame.Size = UDim2.new(0.92,0,0.09,0)
+qtyFrame.Position = UDim2.new(0.04,0,0.48,0)
+qtyFrame.BackgroundColor3 = INPUT_BG
+qtyFrame.Parent = main
+Instance.new("UICorner", qtyFrame).CornerRadius = UDim.new(0,12)
+
+local qtyStroke = Instance.new("UIStroke", qtyFrame)
+qtyStroke.Color = ACCENT
+qtyStroke.Transparency = 0.7
+qtyStroke.Thickness = 1.6
+
+local minusBtn = Instance.new("TextButton")
+minusBtn.Size = UDim2.new(0.24,0,1,0)
+minusBtn.BackgroundColor3 = ACCENT_DARK
+minusBtn.Text = "−"
+minusBtn.TextColor3 = Color3.new(1,1,1)
+minusBtn.TextSize = 38
+minusBtn.Font = Enum.Font.GothamBold
+minusBtn.Parent = qtyFrame
+Instance.new("UICorner", minusBtn).CornerRadius = UDim.new(0,12)
+
+local input = Instance.new("TextBox")
+input.Size = UDim2.new(0.52,0,1,0)
+input.Position = UDim2.new(0.24,0,0,0)
+input.BackgroundTransparency = 1
+input.Text = "1"
+input.TextColor3 = TEXT_LIGHT
+input.TextSize = 34
+input.Font = Enum.Font.GothamBold
+input.ClearTextOnFocus = false
+input.Parent = qtyFrame
+
+local plusBtn = Instance.new("TextButton")
+plusBtn.Size = UDim2.new(0.24,0,1,0)
+plusBtn.Position = UDim2.new(0.76,0,0,0)
+plusBtn.BackgroundColor3 = ACCENT_DARK
+plusBtn.Text = "+"
+plusBtn.TextColor3 = Color3.new(1,1,1)
+plusBtn.TextSize = 38
+plusBtn.Font = Enum.Font.GothamBold
+plusBtn.Parent = qtyFrame
+Instance.new("UICorner", plusBtn).CornerRadius = UDim.new(0,12)
+
+-- Dupe button
+local dupeBtn = Instance.new("TextButton")
+dupeBtn.Size = UDim2.new(0.92,0,0.12,0)
+dupeBtn.Position = UDim2.new(0.04,0,0.82,0)
+dupeBtn.BackgroundColor3 = ACCENT
+dupeBtn.Text = "DUPE NOW"
+dupeBtn.TextColor3 = Color3.new(1,1,1)
+dupeBtn.TextSize = 38
+dupeBtn.Font = Enum.Font.GothamBlack
+dupeBtn.Parent = main
+
+Instance.new("UICorner", dupeBtn).CornerRadius = UDim.new(0,16)
+
+local dupeStroke = Instance.new("UIStroke", dupeBtn)
+dupeStroke.Color = Color3.fromRGB(220, 160, 255)
+dupeStroke.Thickness = 3
+dupeStroke.Transparency = 0.45
+
+local dupeGrad = Instance.new("UIGradient", dupeBtn)
+dupeGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(210, 130, 255)),
+    ColorSequenceKeypoint.new(1, ACCENT)
+}
+dupeGrad.Rotation = 90
+
+-- Hover
+local function hoverEffect(btn, origColor)
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.22), {BackgroundColor3 = HOVER}):Play()
+    end)
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.22), {BackgroundColor3 = origColor}):Play()
+    end)
+end
+
+hoverEffect(minusBtn, ACCENT_DARK)
+hoverEffect(plusBtn, ACCENT_DARK)
+hoverEffect(dupeBtn, ACCENT)
+
+-- Quantity logic
+local function clamp()
+    local n = tonumber(input.Text) or 1
+    input.Text = tostring(math.clamp(n, 1, 9999))
+end
+
+minusBtn.MouseButton1Click:Connect(function()
+    local n = tonumber(input.Text) or 1
+    input.Text = tostring(math.max(1, n-1))
+    clamp()
+end)
+
+plusBtn.MouseButton1Click:Connect(function()
+    local n = tonumber(input.Text) or 1
+    input.Text = tostring(math.min(9999, n+1))
+    clamp()
+end)
+
+input.FocusLost:Connect(clamp)
+
+-- Name getter
+local function getName(t)
+    if not t then return "???" end
+    local n = t:GetAttribute("BrainrotName")
+    if typeof(n) == "string" and n ~= "" then return n end
+    return t.Name
+end
+
+-- Refresh list
+local function refreshList()
+    for _, c in list:GetChildren() do
+        if c:IsA("GuiButton") then c:Destroy() end
+    end
+
+    local tools = {}
+    if player.Backpack then
+        for _, v in player.Backpack:GetChildren() do
+            if v:IsA("Tool") and v.Name ~= "Basic Bat" then 
+                table.insert(tools, v) 
+            end
+        end
+    end
+
+    if #tools == 0 then
+        dropBtn.Text = "No tools in backpack"
+        dropBtn.TextColor3 = TEXT_DARK
+        return
+    end
+
+    list.CanvasSize = UDim2.new(0,0,0, #tools * 58 + 20)
+
+    for _, tool in ipairs(tools) do
+        local name = getName(tool)
+
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.new(1,0,0,52)
+        b.BackgroundColor3 = Color3.fromRGB(38, 35, 55)
+        b.Text = "  " .. name
+        b.TextColor3 = TEXT_LIGHT
+        b.TextSize = 21
+        b.Font = Enum.Font.GothamSemibold
+        b.TextXAlignment = Enum.TextXAlignment.Left
+        b.TextWrapped = true
+        b.Parent = list
+
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
+
+        b.MouseButton1Click:Connect(function()
+            selectedTool = tool
+            dropBtn.Text = name
+            dropBtn.TextColor3 = TEXT_LIGHT
+            list.Visible = false
+            list.Size = UDim2.new(0.92,0,0,0)
+            qtyLabel.Visible = true
+            qtyFrame.Visible = true
+            dupeBtn.Position = UDim2.new(0.04,0,0.82,0)
+        end)
+    end
+end
+
+dropBtn.MouseButton1Click:Connect(function()
+    list.Visible = not list.Visible
+    
+    if list.Visible then
+        qtyLabel.Visible = false
+        qtyFrame.Visible = false
+        dupeBtn.Position = UDim2.new(0.04, 0, 0.62, 0)
+        list.Size = UDim2.new(0.92, 0, 0.55, 0)
+        refreshList()
+    else
+        qtyLabel.Visible = true
+        qtyFrame.Visible = true
+        dupeBtn.Position = UDim2.new(0.04, 0, 0.82, 0)
+        list.Size = UDim2.new(0.92, 0, 0, 0)
+    end
+end)
+
+-- Dupe
+dupeBtn.MouseButton1Click:Connect(function()
+    if not selectedTool then
+        dupeBtn.Text = "Select something first!"
+        task.delay(1.5, function() dupeBtn.Text = "DUPE NOW" end)
+        return
+    end
+
+    local bp = nil
+
+    if player.Backpack then
+        bp = player.Backpack
+    end
+
+    if not bp and player.Character then
+        bp = player.Character:FindFirstChild("Backpack")
+    end
+
+    if not bp then
+        dupeBtn.Text = "Backpack not found yet"
+        task.delay(2, function() dupeBtn.Text = "DUPE NOW" end)
+        return
+    end
+
+    local amt = tonumber(input.Text) or 1
+    amt = math.clamp(amt, 1, 9999)
+
+    local flash = TweenService:Create(dupeBtn, TweenInfo.new(0.13), {BackgroundColor3 = Color3.fromRGB(220,160,255)})
+    flash:Play()
+    flash.Completed:Wait()
+    TweenService:Create(dupeBtn, TweenInfo.new(0.28), {BackgroundColor3 = ACCENT}):Play()
+
+    for i = 1, amt do
+        local c = selectedTool:Clone()
+        c.Parent = bp
+        if i % 10 == 0 then task.wait() end
+    end
+
+    dupeBtn.Text = "Done x" .. amt
+    task.delay(1.8, function() dupeBtn.Text = "DUPE" end)
+end)
